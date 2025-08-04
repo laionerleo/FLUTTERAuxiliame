@@ -9,6 +9,13 @@ class DriverMainScreen extends StatefulWidget {
 }
 
 class _DriverMainScreenState extends State<DriverMainScreen> {
+  String? _selectedAuxilio;
+  final List<String> _tiposAuxilio = [
+    'Carga de batería',
+    'Sin gasolina',
+    'Problema mecánico'
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,15 +59,63 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
           ],
         ),
       ),
-      body: GoogleMap(
-        initialCameraPosition: CameraPosition(
-          target: LatLng(0, 0), // Placeholder coordinates
-          zoom: 15,
-        ),
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(0, 0), // Placeholder coordinates
+              zoom: 15,
+            ),
+          ),
+          Positioned(
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: DropdownButton<String>(
+                  value: _selectedAuxilio,
+                  hint: const Text('Seleccione un tipo de auxilio'),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedAuxilio = newValue;
+                    });
+                  },
+                  items: _tiposAuxilio
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // TODO: Implement logic to create a new request
+          if (_selectedAuxilio == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Por favor, seleccione un tipo de auxilio.'),
+              ),
+            );
+          } else {
+            // Simulate sending data to the backend
+            print({
+              "tipoAuxilio": _selectedAuxilio,
+              "descripcion": "",
+              "latitud": -17.783,
+              "longitud": -63.182
+            });
+          }
         },
         label: const Text('Pedir Auxilio'),
         icon: const Icon(Icons.add),

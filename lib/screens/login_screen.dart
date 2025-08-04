@@ -1,3 +1,4 @@
+import 'package:auxiliame_app/screens/driver_main_screen.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -31,7 +32,9 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // TODO: Implement login logic
+                Navigator.of(context).pushReplacement(MaterialPageRoute(
+                  builder: (context) => const DriverMainScreen(),
+                ));
               },
               child: const Text('Ingresar'),
             ),

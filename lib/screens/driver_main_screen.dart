@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 class DriverMainScreen extends StatefulWidget {
   const DriverMainScreen({super.key});
@@ -15,6 +16,57 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
     'Sin gasolina',
     'Problema mecánico'
   ];
+  GoogleMapController? _mapController;
+  Position? _currentPosition;
+
+  @override
+  void initState() {
+    super.initState();
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Los permisos de ubicación están denegados permanentemente.'),
+        ),
+      );
+      return;
+    }
+
+    if (permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always) {
+      _getCurrentLocation();
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        _currentPosition = position;
+      });
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+            zoom: 15,
+          ),
+        ),
+      );
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,10 +114,18 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
       body: Stack(
         children: [
           GoogleMap(
+            onMapCreated: (controller) {
+              _mapController = controller;
+            },
             initialCameraPosition: CameraPosition(
-              target: LatLng(0, 0), // Placeholder coordinates
+              target: _currentPosition != null
+                  ? LatLng(
+                      _currentPosition!.latitude, _currentPosition!.longitude)
+                  : const LatLng(0, 0), // Placeholder coordinates
               zoom: 15,
             ),
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
           ),
           Positioned(
             bottom: 80,
@@ -112,8 +172,8 @@ class _DriverMainScreenState extends State<DriverMainScreen> {
             print({
               "tipoAuxilio": _selectedAuxilio,
               "descripcion": "",
-              "latitud": -17.783,
-              "longitud": -63.182
+              "latitud": _currentPosition?.latitude ?? -17.783,
+              "longitud": _currentPosition?.longitude ?? -63.182
             });
           }
         },

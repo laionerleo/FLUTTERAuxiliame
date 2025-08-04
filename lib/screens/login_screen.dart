@@ -1,4 +1,4 @@
-import 'package:auxiliame_app/screens/driver_main_screen.dart';
+import 'package:auxiliame_app/screens/driver_main_screen_osm.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -33,7 +33,7 @@ class LoginScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (context) => const DriverMainScreen(),
+                  builder: (context) => const DriverMainScreenOsm(),
                 ));
               },
               child: const Text('Ingresar'),

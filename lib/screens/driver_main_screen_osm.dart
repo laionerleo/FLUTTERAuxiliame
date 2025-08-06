@@ -126,8 +126,8 @@ class _DriverMainScreenOsmState extends State<DriverMainScreenOsm> {
                   children: [
                     TileLayer(
                       urlTemplate:
-                          'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      subdomains: const ['a', 'b', 'c'],
+                    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                subdomains: const ['a', 'b', 'c', 'd'],
                     ),
                     MarkerLayer(
                       markers: [

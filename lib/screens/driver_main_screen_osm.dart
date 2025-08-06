@@ -19,6 +19,7 @@ class _DriverMainScreenOsmState extends State<DriverMainScreenOsm> {
   ];
   MapController? _mapController;
   Position? _currentPosition;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -50,7 +51,7 @@ class _DriverMainScreenOsmState extends State<DriverMainScreenOsm> {
     }
   }
 
-  Future<void> _getCurrentLocation() async {
+  Future<Position?> _getCurrentLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
@@ -61,8 +62,10 @@ class _DriverMainScreenOsmState extends State<DriverMainScreenOsm> {
         LatLng(position.latitude, position.longitude),
         15,
       );
+      return position;
     } catch (e) {
       print(e);
+      return null;
     }
   }
 
@@ -109,93 +112,111 @@ class _DriverMainScreenOsmState extends State<DriverMainScreenOsm> {
           ],
         ),
       ),
-      body: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: _currentPosition != null
-                  ? LatLng(
-                      _currentPosition!.latitude, _currentPosition!.longitude)
-                  : const LatLng(0, 0), // Placeholder coordinates
-              initialZoom: 15,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                subdomains: const ['a', 'b', 'c'],
-              ),
-              if (_currentPosition != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      width: 80.0,
-                      height: 80.0,
-                      point: LatLng(_currentPosition!.latitude,
-                          _currentPosition!.longitude),
-                      child: const Icon(
-                        Icons.location_on,
-                        color: Colors.red,
-                        size: 40.0,
-                      ),
+      body: _currentPosition == null
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
+              children: [
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: LatLng(_currentPosition!.latitude,
+                        _currentPosition!.longitude),
+                    initialZoom: 15,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      subdomains: const ['a', 'b', 'c'],
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          width: 80.0,
+                          height: 80.0,
+                          point: LatLng(_currentPosition!.latitude,
+                              _currentPosition!.longitude),
+                          child: const Icon(
+                            Icons.location_on,
+                            color: Colors.red,
+                            size: 40.0,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-            ],
-          ),
-          Positioned(
-            bottom: 80,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8.0),
+                Positioned(
+                  bottom: 80,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: DropdownButton<String>(
+                        value: _selectedAuxilio,
+                        hint: const Text('Seleccione un tipo de auxilio'),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedAuxilio = newValue;
+                          });
+                        },
+                        items: _tiposAuxilio
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
                 ),
-                child: DropdownButton<String>(
-                  value: _selectedAuxilio,
-                  hint: const Text('Seleccione un tipo de auxilio'),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedAuxilio = newValue;
-                    });
-                  },
-                  items: _tiposAuxilio
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-              ),
+              ],
             ),
-          ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          if (_selectedAuxilio == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Por favor, seleccione un tipo de auxilio.'),
-              ),
-            );
-          } else {
-            // Simulate sending data to the backend
-            print({
-              "tipoAuxilio": _selectedAuxilio,
-              "descripcion": "",
-              "latitud": _currentPosition?.latitude ?? -17.783,
-              "longitud": _currentPosition?.longitude ?? -63.182
-            });
-          }
-        },
-        label: const Text('Pedir Auxilio'),
-        icon: const Icon(Icons.add),
+        onPressed: _isLoading
+            ? null
+            : () async {
+                if (_selectedAuxilio == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Por favor, seleccione un tipo de auxilio.'),
+                    ),
+                  );
+                  return;
+                }
+
+                setState(() {
+                  _isLoading = true;
+                });
+
+                Position? position = await _getCurrentLocation();
+
+                if (position != null) {
+                  // Simulate sending data to the backend
+                  print({
+                    "tipoAuxilio": _selectedAuxilio,
+                    "descripcion": "",
+                    "latitud": position.latitude,
+                    "longitud": position.longitude
+                  });
+                }
+
+                setState(() {
+                  _isLoading = false;
+                });
+              },
+        label: _isLoading
+            ? const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              )
+            : const Text('Pedir Auxilio'),
+        icon: _isLoading ? null : const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );

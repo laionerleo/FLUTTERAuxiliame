@@ -1,3 +1,4 @@
+import 'package:auxiliame_app/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -94,7 +95,9 @@ class _DriverMainScreenOsmState extends State<DriverMainScreenOsm> {
             ListTile(
               title: const Text('Chat IA'),
               onTap: () {
-                // TODO: Implement navigation
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const ChatScreen(),
+                ));
               },
             ),
             ListTile(
@@ -126,7 +129,7 @@ class _DriverMainScreenOsmState extends State<DriverMainScreenOsm> {
                   children: [
                     TileLayer(
                       urlTemplate:
-                    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
                 subdomains: const ['a', 'b', 'c', 'd'],
                     ),
                     MarkerLayer(

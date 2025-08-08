@@ -1,3 +1,4 @@
+import 'package:auxiliame_app/services/ai_service.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -10,22 +11,23 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, String>> _messages = [];
   final TextEditingController _controller = TextEditingController();
+  final AIService _aiService = AIService();
+  bool _isLoading = false;
 
-  void _sendMessage() {
-    if (_controller.text.isNotEmpty) {
+  void _sendMessage() async {
+    if (_controller.text.isNotEmpty && !_isLoading) {
+      final userMessage = _controller.text;
       setState(() {
-        _messages.add({"sender": "user", "text": _controller.text});
+        _messages.add({"sender": "user", "text": userMessage});
+        _isLoading = true;
       });
       _controller.clear();
 
-      // Simulate bot response
-      Future.delayed(const Duration(seconds: 1), () {
-        setState(() {
-          _messages.add({
-            "sender": "bot",
-            "text": "Gracias por tu mensaje. Estoy aquí para ayudarte."
-          });
-        });
+      final botResponse = await _aiService.getResponse(userMessage);
+
+      setState(() {
+        _messages.add({"sender": "bot", "text": botResponse});
+        _isLoading = false;
       });
     }
   }
@@ -69,6 +71,11 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Center(child: CircularProgressIndicator()),
+            ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(

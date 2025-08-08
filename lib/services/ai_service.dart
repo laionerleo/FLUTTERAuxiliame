@@ -1,29 +1,31 @@
-import 'package:dart_openai/dart_openai.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 class AIService {
-  AIService() {
-    OpenAI.apiKey = dotenv.env['OPENAI_API_KEY']!;
-  }
+  // --- IMPORTANTE ---
+  // Pega tu clave de API de Google AI Studio aquí.
+  // Obtén una en: https://aistudio.google.com/
+  static const String _apiKey = "PEGAR_AQUI_TU_API_KEY_DE_GEMINI";
+
+  final GenerativeModel _model;
+
+  AIService()
+      : _model = GenerativeModel(
+          model: 'gemini-pro',
+          apiKey: _apiKey,
+        );
 
   Future<String> getResponse(String message) async {
+    if (_apiKey == "PEGAR_AQUI_TU_API_KEY_DE_GEMINI") {
+      return "Error: La clave de API de Gemini no ha sido configurada.";
+    }
+
     try {
-      final chatCompletion = await OpenAI.instance.chat.create(
-        model: 'gpt-3.5-turbo',
-        messages: [
-          OpenAIChatCompletionChoiceMessageModel(
-            content: [
-              OpenAIChatCompletionChoiceMessageContentItemModel.text(message),
-            ],
-            role: OpenAIChatMessageRole.user,
-          ),
-        ],
-      );
-      return chatCompletion.choices.first.message.content?.first.text ??
-          "No se pudo obtener una respuesta.";
+      final content = [Content.text(message)];
+      final response = await _model.generateContent(content);
+      return response.text ?? "No se pudo obtener una respuesta.";
     } catch (e) {
-      print("Error calling OpenAI API: $e");
-      return "Error al conectar con la IA. Inténtalo de nuevo.";
+      print("Error calling Gemini API: $e");
+      return "Error al conectar con la IA de Gemini. Inténtalo de nuevo.";
     }
   }
 }

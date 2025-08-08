@@ -3,7 +3,7 @@ import 'package:dart_openai/dart_openai.dart';
 
 class AIService {
   AIService() {
-    OpenAI.apiKey = "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"; // dotenv.env['OPENAI_API_KEY']!;
+    //OpenAI.apiKey = "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"; // dotenv.env['OPENAI_API_KEY']!;
   }
 
   Future<String> getResponse(String message) async {

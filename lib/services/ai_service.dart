@@ -4,7 +4,9 @@ class AIService {
   // --- IMPORTANTE ---
   // Pega tu clave de API de Google AI Studio aquí.
   // Obtén una en: https://aistudio.google.com/
-  static const String _apiKey = "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";
+ // static const String _apiKey = "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";
+
+  static const String _apiKey = "";
 
   final GenerativeModel _model;
 
@@ -15,10 +17,7 @@ class AIService {
         );
 
   Future<String> getResponse(String message) async {
-   /* if (_apiKey == "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") {
-      return "Error: La clave de API de Gemini no ha sido configurada.";
-    }
-    */
+  
 
     try {
       final content = [Content.text(message)];
